@@ -1,15 +1,20 @@
 import City.*;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         World mir = new World();
-        mir.addWiseacres(new Wiseacre("Старый Старец"));
-        mir.addWiseacres(new Wiseacre("Старый Старец2"));
-        mir.addWiseacres(new Wiseacre("Старый Старец3 "));
+        mir.addWiseacres(new Wiseacre("Хотабыч"));
+        mir.addWiseacres(new Wiseacre("Дамблдор"));
+        mir.addWiseacres(new Wiseacre("Подаван"));
         mir.addTowns(new Town("Новый город", "Моское дно"));
         mir.addTowns(new Town("Новая Атлантида", "Моское дно"));
-        mir.addMines(new Mine("А", Resources.PROTOPLASM, 1000, "Морское дно"));
-        mir.addMines(new Mine("B", Resources.CELLMASS, 1000, "Морское дно"));
-        mir.go();
+        mir.addMines(new Mine("Лужа протоплазмы", Resources.PROTOPLASM, -100, "Морское дно"));
+        mir.addMines(new Mine("Залежи клеточной массы", Resources.CELLMASS, 10, "Морское дно"));
+
+        try {
+            mir.go();
+        } catch (ErrorInTheNumberOfWisearces e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

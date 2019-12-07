@@ -17,7 +17,7 @@ public class Worker extends Being {
 
     }
 
-    public void goMine(Mine mineLocality, Town townLocality) {
+    public void goMine(Mine mineLocality, Town townLocality) throws InterruptedException {
         EventMessage.message(this.name + " отправился на добычу ресурсов в  " + mineLocality.getName());
         goToLocality(mineLocality);
         if (this.myRes.getValue() == 0) {

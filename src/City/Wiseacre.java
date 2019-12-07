@@ -60,16 +60,21 @@ public class Wiseacre extends Being {
     }
 
 
-    public House Building() {
-        if (myRes.getType() == Resources.STONE & myRes.getValue() >= 5) {
-            myRes.setValue(myRes.getValue() - 5);
-            if (myRes.getValue() == 0) {
-                myRes.setType(Resources.NONE);
+    public boolean Building() {
+        if (this.locality != null && this.locality.getType() == TypeOfLocality.TOWN)
+            if (myRes.getType() == Resources.STONE & myRes.getValue() >= 5) {
+                myRes.setValue(myRes.getValue() - 5);
+                if (myRes.getValue() == 0) {
+                    myRes.setType(Resources.NONE);
+                }
+                ((Town) this.locality).BuildingInTown(this);
+                return true;
+            } else {
+                EventMessage.message(this.name + " не смог построить дом, т.к. не имеет нужных ресурсов(5 камней).Его инвентарь: " + myRes.getValue() + " единиц ресурса " + myRes.getType().getName());
+                return false;
             }
-            return new House(this);
-        } else {
-            EventMessage.message(this.name + " не смог построить дом, т.к. не имеет нужных ресурсов(5 камней).Его инвентарь: " + myRes.getValue() + " единиц ресурса " + myRes.getType().getName());
-            return null;
+        else {
+            return false;
         }
     }
 }

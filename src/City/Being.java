@@ -38,7 +38,7 @@ public abstract class Being extends Point implements InfoI, ResourceMove {
         this.locality = locality;
     }
 
-    public void goToLocality(Locality finalLocality) {
+    public void goToLocality(Locality finalLocality) throws InterruptedException {
         if (finalLocality == this.locality) {
             EventMessage.message(this.name + " находится в " + locality.getName(), 0);
         } else {
@@ -49,29 +49,28 @@ public abstract class Being extends Point implements InfoI, ResourceMove {
         }
     }
 
-    public void goMove(double goPointX, double goPointY) {
+    public void goMove(double goPointX, double goPointY) throws InterruptedException {
         this.locality = null;
         double xDist = Math.abs(goPointX - this.pointX);
         double yDist = Math.abs(goPointY - this.pointY);
         double diagonal = Math.sqrt(xDist * xDist + yDist * yDist);
-        long time = System.currentTimeMillis();
+        long time = 300;
         while (goPointX != this.getPointX() || goPointY != this.getPointY()) {
 
-            if (System.currentTimeMillis() - time >= 1) {
                 if (Math.abs(goPointX - this.getPointX()) >= (maxSpeed * xDist / diagonal)) {
                     this.pointX = this.pointX + maxSpeed * (xDist / diagonal) * Math.signum(goPointX - this.pointX);
                 } else this.pointX = goPointX;
                 if (Math.abs(goPointY - this.getPointY()) >= (maxSpeed * yDist / diagonal)) {
                     this.pointY = this.pointY + maxSpeed * (yDist / diagonal) * Math.signum(goPointY - this.pointY);
                 } else this.pointY = goPointY;
-                System.out.println(this.name + "  " + this.PointToString());//Проверка координат
-                time = System.currentTimeMillis();
-            }
+            EventMessage.message(this.name + "  " + this.PointToString(), 0);//Проверка координат
+            Thread.sleep(time);
+
         }
 
     }
 
-    public void goToForAWalk() {
+    public void goToForAWalk() throws InterruptedException {
         Locality hisLocality = this.locality;
         EventMessage.message(this.name + " пошёл погулять");
         goMove(Math.random() * 200 - 100, Math.random() * 200 - 100);
@@ -80,7 +79,7 @@ public abstract class Being extends Point implements InfoI, ResourceMove {
         }
     }
 
-    public void Leave() {
+    public void Leave() throws InterruptedException {
         EventMessage.message(this.name + " ушёл в неизвестном направлении");
         goMove(Math.random() * 200 - 100, Math.random() * 200 - 100);
     }
@@ -97,18 +96,18 @@ public abstract class Being extends Point implements InfoI, ResourceMove {
         return this.myRes.getType();
     }
 
-    public void resourceTransfer(Town fromTown, Town toTown, Resources typeOfResource) {
+    public void resourceTransfer(Town fromTown, Town toTown, Resources typeOfResource) throws InterruptedException {
         resourceTransfer(fromTown, toTown, typeOfResource, maxResourceValues);
     }
 
-    public void resourceTransfer(Town fromTown, Town toTown, Resources typeOfResource, int value) {
+    public void resourceTransfer(Town fromTown, Town toTown, Resources typeOfResource, int value) throws InterruptedException {
         if (value > maxResourceValues) value = maxResourceValues;
         EventMessage.message(this.name + " отправился на перенос " + value + " единиц ресурса " + typeOfResource.getName() + " из " + fromTown.getName() + " в " + toTown.getName());
         takeResource(fromTown, typeOfResource, value);
         giveResource(toTown);
     }
 
-    public void giveResource(Town townLocality) {
+    public void giveResource(Town townLocality) throws InterruptedException {
         goToLocality(townLocality);
         if (getResValue() != 0) {
             townLocality.setResourceValue(myRes.getType(), townLocality.getResourceValue(myRes.getType()) + myRes.getValue());
@@ -120,11 +119,11 @@ public abstract class Being extends Point implements InfoI, ResourceMove {
         }
     }
 
-    public void takeResource(Town townLocality, Resources typeOfResource) {
+    public void takeResource(Town townLocality, Resources typeOfResource) throws InterruptedException {
         takeResource(townLocality, typeOfResource, maxResourceValues);
     }
 
-    public void takeResource(Town townLocality, Resources typeOfResource, int value) {
+    public void takeResource(Town townLocality, Resources typeOfResource, int value) throws InterruptedException {
 
         if (value > maxResourceValues) value = maxResourceValues;
         this.goToLocality(townLocality);

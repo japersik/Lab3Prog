@@ -15,6 +15,14 @@ public class Mine extends Locality {
 
     public Mine(String name, Resources typeOfResources, int value, String location) {
         super(name, TypeOfLocality.MINE, location);
+        try {
+            if (value < 0) {
+                throw new ResourcesValueError();
+            }
+        } catch (ResourcesValueError e) {
+            System.out.println(e.getMessage());
+            value = Math.abs(value);
+        }
         this.mineRes.setValue(value);
         this.mineRes.setType(typeOfResources);
     }

@@ -16,8 +16,18 @@ public class Town extends Locality {
         super(name, TypeOfLocality.TOWN, location);
     }
 
-    public Town(String name, String location, int Stone, int Protoplasm, int CellMass) {
+    public Town(String name, String location, int Stone, int Protoplasm, int CellMass) throws ResourcesValueError {
         super(name, TypeOfLocality.TOWN, location);
+        try {
+            if (Stone < 0 || Protoplasm < 0 || CellMass < 0) {
+                throw new ResourcesValueError();
+            }
+        } catch (ResourcesValueError e) {
+            System.out.println(e.getMessage());
+            Stone = Math.abs(Stone);
+            CellMass = Math.abs(CellMass);
+            Protoplasm = Math.abs(Protoplasm);
+        }
         this.myStone.setValue(Stone);
         this.myProtoplasm.setValue(Protoplasm);
         this.myCellMass.setValue(CellMass);
@@ -77,6 +87,20 @@ public class Town extends Locality {
         return minType;
     }
 
+    protected void BuildingInTown(Wiseacre maker) {
+        new House(maker);
+    }
+
+    @Override
+    public String toString() {
+        return "Класс: " + getClass().getName() +
+                "\nТип: " + type.getName() +
+                "\nНазвание: " + name +
+                "\nМестность: " + location +
+                "\nСклад ресурсов: " + myStone.getType().getName() + " " + myStone.getValue() + ", " + myProtoplasm.getType().getName() + " " + myProtoplasm.getValue() + ", " + myCellMass.getType().getName() + " " + myCellMass.getValue() +
+                "\nКоличество построенных домов: " + Houses.size();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -87,15 +111,45 @@ public class Town extends Locality {
                 getHouses().size() == town.getHouses().size();
     }
 
-    @Override
-    public String toString() {
-        return "Класс: " + getClass().getName() +
-                "\nТип: " + type.getName() +
-                "\nНазвание: " + name +
-                "\nМестность: " + location +
-                "\nСклад ресурсов: " + myStone.getType().getName() + " " + myStone.getValue() + ", " + myProtoplasm.getType().getName() + " " + myProtoplasm.getValue() + ", " + myCellMass.getType().getName() + " " + myCellMass.getValue() +
-                "\nКоличество построенных домов: " + Houses.size() +
-                "\nhashCode: " + hashCode();
+    protected class House {
+        private int number;
+        private Town town;
+
+        public House(Wiseacre maker) {
+            this.number = Houses.size() + 1;
+            this.town = Town.this;
+            EventMessage.message(maker.getName() + " строит дом номер " + number + " в " + town.getName());
+            if (!(maker.getLocality() == null) && ((maker.getLocality().getType()) == TypeOfLocality.TOWN)) {
+                ((Town) maker.getLocality()).addHouses(this);
+            }
+        }
+
+        public Town getTown() {
+            return town;
+        }
+
+        public int getNumber() {
+            return number;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            Town.House house = (Town.House) obj;
+            return number == house.getNumber() && town.equals(house.getTown());
+        }
+
+        @Override
+        public String toString() {
+            return "Класс: " + getClass().getName() +
+                    "\nПорядковый номер : " + number;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(number);
+        }
     }
 
     @Override

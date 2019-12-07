@@ -13,140 +13,168 @@ public class World {
     private boolean endingCELLMASS = false;
 
     public World() {
+
         System.out.println("Создан новый мир");
-        Town oldTown = new Town("Старый город", "Морское дно", 27, 50, 25);
+
+        Town oldTown = new Town("Старый город", "Морское дно", -100, 50, 25);
         addTowns(oldTown);
-        addWiseacres(new Wiseacre("Мастер", oldTown));
-        addMines(new Mine("Каменоломня", Resources.STONE, 200, "Глубокая глубина"));
-        addMines(new Mine("Чудо-источник Протоплазмы", Resources.PROTOPLASM, 200, "Глубокая глубина"));
-        addMines(new Mine("Чудо-источник Клеточной массы", Resources.CELLMASS, 200, "Глубокая глубина"));
+
+
+        // addWiseacres(new Wiseacre("Мастер", oldTown));
+        addMines(new Mine("Каменоломня", Resources.STONE, 50, "Глубокая глубина"));
+        addMines(new Mine("Чудо-источник Протоплазмы", Resources.PROTOPLASM, 50, "Глубокая глубина"));
+        addMines(new Mine("Чудо-источник Клеточной массы", Resources.CELLMASS, 50, "Глубокая глубина"));
+
     }
 
-    public void go() {
-        for (int i = 0; i < Wiseacres.size(); i++) {
-            if (Towns.size() > 1) {
-                Wiseacres.get(i).goToLocality(Towns.get((int) Math.floor(1 + Math.random() * (Towns.size() - 1))));
-            } else {
-                Wiseacres.get(i).goToLocality(Towns.get(0));
-            }
+    public void go() throws InterruptedException, ErrorInTheNumberOfWisearces {
+        if (Wiseacres.size() < 1) {
+            throw new ErrorInTheNumberOfWisearces();
         }
 
+        for (int i = 0; i < Wiseacres.size(); i++) {
+            wiseacresMoves(i);
+        }
+        for (int i = 0; i < Workers.size(); i++) {
+            workersMoves(i);
+        }
         while (true) {
-            for (int i = 0; i < Wiseacres.size(); i++) {
-                wiseacresMoves(i);
-            }
-            for (int i = 0; i < Workers.size(); i++) {
-                workersMoves(i);
-            }
+            Thread.sleep(1000);
             if (endingSTONE && endingPROTOPLASM && endingCELLMASS) {
+                Thread.sleep(4000);
                 EventMessage.message("В мире были исчерпаны все ресурсы, всё что остаётся делать старцам - гулять или искать новое место жительства...Ведь больше им нечего делать. Счастья нет. Жизнь - боль. Мир-матрица. Всё предрешено...", 1);
                 System.out.println("Информация о мире\n" + this);
                 break;
             }
         }
+
     }
 
-    private void wiseacresMoves(int index) {
+    private void wiseacresMoves(int index) throws InterruptedException {
 
-//        Runnable task = () -> {
-//            if (Wiseacres.get(index).status) {
-//                while(true){
-        Locality hisLocality = Wiseacres.get(index).getLocality();
-        double v1 = Math.random();
-        if (hisLocality != null && hisLocality.getType() == TypeOfLocality.TOWN) {
-            if (v1 > 0.66 && !endingSTONE) {
-                House newHouse = Wiseacres.get(index).Building();
-                if (newHouse != null) {
-                    ((Town) (Wiseacres.get(index).getLocality())).addHouses(newHouse);
-                } else if (findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5) != null) {
-                    if (findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5) != hisLocality)
-                        Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5), (Town) hisLocality, Resources.STONE, 5);
-                    Wiseacres.get(index).takeResource((Town) hisLocality, Resources.STONE, 5);
-                    Wiseacres.get(index).goToLocality(hisLocality);
-                    newHouse = Wiseacres.get(index).Building();
+        Runnable task = () -> {
+            try {
+                while (true) {
+                    Thread.sleep(100);
+                    if (endingSTONE && endingPROTOPLASM && endingCELLMASS) {
+                        break;
+                    }
+                    Locality hisLocality = Wiseacres.get(index).getLocality();
+                    double v1 = Math.random();
+                    if (hisLocality != null && hisLocality.getType() == TypeOfLocality.TOWN) {
+                        if (v1 > 0.66 && !endingSTONE) {
+                            boolean newFlag = Wiseacres.get(index).Building();
+                            if (!newFlag) {
+                                if (findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5) != null) {
+                                    if (findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5) != hisLocality)
+                                        Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.STONE, 5), (Town) hisLocality, Resources.STONE, 5);
+                                    Wiseacres.get(index).takeResource((Town) hisLocality, Resources.STONE, 5);
+                                    Wiseacres.get(index).goToLocality(hisLocality);
+                                    newFlag = Wiseacres.get(index).Building();
+                                }
+                            }
+                            if (!newFlag && endingResources && !endingSTONE) {
+                                endingSTONE = true;
+                                EventMessage.message("В мире закончились доступные Камни", 1);
+                            }
+                        } else if (v1 > 0.33 && !endingCELLMASS) {
+                            Worker newWorker = Wiseacres.get(index).CreatingWorkers();
+                            if (newWorker != null) {
+                                Workers.add(newWorker);
+                            } else if (findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5) != null) {
+                                if (findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5) != hisLocality)
+                                    Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5), (Town) hisLocality, Resources.CELLMASS, 5);
+                                Wiseacres.get(index).takeResource((Town) hisLocality, Resources.CELLMASS, 5);
+                                Wiseacres.get(index).goToLocality(hisLocality);
+                                newWorker = Wiseacres.get(index).CreatingWorkers();
+                                if (newWorker != null) {
+                                    Workers.add(newWorker);
+                                    workersMoves(Workers.indexOf(newWorker));
+                                }
+                            } else (Wiseacres.get(index)).goToForAWalk();
+                            if (newWorker == null && (endingResources || Workers.size() == 0) && !endingCELLMASS) {
+                                endingCELLMASS = true;
+                                endingResources = true;
+                                EventMessage.message("В мире закончилась доступная Клеточная масса", 1);
+                            }
+                        } else if (v1 > 0.1 && !endingPROTOPLASM) {
+                            LuminousCreature newLuminousCreature = Wiseacres.get(index).CreatingLuminousCreature();
+                            if (newLuminousCreature != null) {
+                                ((Town) (Wiseacres.get(index).getLocality())).addLuminousCreature(newLuminousCreature);
+                            } else if (findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3) != null) {
+                                if (findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3) != hisLocality)
+                                    Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3), (Town) hisLocality, Resources.PROTOPLASM, 3);
+                                Wiseacres.get(index).takeResource((Town) hisLocality, Resources.PROTOPLASM, 3);
+
+                                Wiseacres.get(index).goToLocality(hisLocality);
+
+                                newLuminousCreature = Wiseacres.get(index).CreatingLuminousCreature();
+
+                            } else (Wiseacres.get(index)).goToForAWalk();
+                            if (newLuminousCreature == null && endingResources && !endingPROTOPLASM) {
+                                endingPROTOPLASM = true;
+                                EventMessage.message("В мире закончилась доступная Протоплазма", 1);
+                            }
+                        } else if (v1 > 0.05) {
+                            Wiseacres.get(index).goToForAWalk();
+                        } else {
+                            Wiseacres.get(index).Leave();
+                        }
+                    } else {
+                        Wiseacres.get(index).goToLocality(Towns.get((int) Math.floor(Math.random() * (Towns.size()))));
+                    }
+
                 }
-                if (newHouse == null && endingResources) {
-                    endingSTONE = true;
-                }
-            } else if (v1 > 0.33 && !endingCELLMASS) {
-                Worker newWorker = Wiseacres.get(index).CreatingWorkers();
-                if (newWorker != null) {
-                    Workers.add(newWorker);
-                } else if (findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5) != null) {
-                    if (findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5) != hisLocality)
-                        Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.CELLMASS, 5), (Town) hisLocality, Resources.CELLMASS, 5);
-                    Wiseacres.get(index).takeResource((Town) hisLocality, Resources.CELLMASS, 5);
-                    Wiseacres.get(index).goToLocality(hisLocality);
-                    newWorker = Wiseacres.get(index).CreatingWorkers();
-                    if (newWorker != null) {
-                        Workers.add(newWorker);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        Thread thread = new Thread(task);
+        thread.start();
+
+
+    }
+
+
+    private void workersMoves(int index) throws InterruptedException {
+        Runnable task = () -> {
+            try {
+
+                while (true) {
+                    Thread.sleep(400);
+
+                    if (!endingResources) {
+                        Locality hisLocality = Workers.get(index).getLocality();
+                        Resources v1 = ((Town) hisLocality).getMinResType();
+
+                        if (hisLocality != null && hisLocality.getType() == TypeOfLocality.TOWN) {
+                            if (findRecourcesInMines(v1) != null) {
+                                Workers.get(index).goMine(findRecourcesInMines(v1, Workers.get(index)), (Town) hisLocality);
+                            } else if (findRecourcesInMines() != null) {
+                                Workers.get(index).goMine(findRecourcesInMines(), (Town) hisLocality);
+                            } else {
+                                EventMessage.message("Во всех мировых шахтах закончиличь ресурсы", 1);
+                                this.endingResources = true;
+                            }
+                        } else {
+                            Workers.get(index).goToLocality(Towns.get((int) Math.floor(Math.random() * (Towns.size()))));
+                        }
+                    } else {
+                        break;
                     }
                 }
-                if (newWorker == null && (endingResources || Workers.size() == 0)) {
-                    endingCELLMASS = true;
-                    endingResources = true;
-                }
-//                    this.workersMoves(newWorker);
-            } else if (v1 > 0.1 && !endingPROTOPLASM) {
-                LuminousCreature newLuminousCreature = Wiseacres.get(index).CreatingLuminousCreature();
-                if (newLuminousCreature != null) {
-                    ((Town) (Wiseacres.get(index).getLocality())).addLuminousCreature(newLuminousCreature);
-                } else if (findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3) != null) {
-                    if (findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3) != hisLocality)
-                        Wiseacres.get(index).resourceTransfer(findRecourcesInTowns((Town) hisLocality, Resources.PROTOPLASM, 3), (Town) hisLocality, Resources.PROTOPLASM, 3);
-                    Wiseacres.get(index).takeResource((Town) hisLocality, Resources.PROTOPLASM, 3);
-                    Wiseacres.get(index).goToLocality(hisLocality);
-                    newLuminousCreature = Wiseacres.get(index).CreatingLuminousCreature();
 
-                }
-                if (newLuminousCreature == null && endingResources) {
-                    endingPROTOPLASM = true;
-                }
-            } else if (v1 > 0.05) {
-                Wiseacres.get(index).goToForAWalk();
-            } else {
-                Wiseacres.get(index).Leave();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } else {
-            Wiseacres.get(index).goToLocality(Towns.get((int) Math.floor(Math.random() * (Towns.size()))));
-        }
 
-//            }
-//            }
-//        };
-//        Thread thread = new Thread(task);
-//        thread.start();
-
+        };
+        Thread thread = new Thread(task);
+        thread.start();
 
     }
 
-
-    private void workersMoves(int index) {
-//        Runnable task = () -> {if (Workers.get(index).status) {
-//            Wiseacres.get(index).status = false;
-        if (!endingResources) {
-            Locality hisLocality = Workers.get(index).getLocality();
-            Resources v1 = ((Town) hisLocality).getMinResType();
-
-            if (hisLocality != null && hisLocality.getType() == TypeOfLocality.TOWN) {
-                if (findRecourcesInMines(v1) != null) {
-                    Workers.get(index).goMine(findRecourcesInMines(v1, Workers.get(index)), (Town) hisLocality);
-                } else if (findRecourcesInMines() != null) {
-                    Workers.get(index).goMine(findRecourcesInMines(), (Town) hisLocality);
-                } else {
-                    EventMessage.message("Во всех мировых шахтах закончиличь ресурсы", 1);
-                    this.endingResources = true;
-                }
-            } else {
-                Workers.get(index).goToLocality(Towns.get((int) Math.floor(Math.random() * (Towns.size()))));
-            }
-//            }
-//        };
-//        Thread thread = new Thread(task);
-//        thread.start();
-
-        }
-    }
 
     public Town findRecourcesInTowns(Town toTown, Resources typeOfResource, int value) {
         int maxResValue = 0;
@@ -224,7 +252,6 @@ public class World {
                 "\nКоличество городов:: " + Towns.size() +
                 "\nКоличество старцев: " + Wiseacres.size() +
                 "\nКоличество рабочих: " + Workers.size() +
-                "\nКоличество домов: " + House.getAmount() +
                 "\nКоличество светящихся существ: " + LuminousCreature.getAmount() +
                 "\nhashCode: " + hashCode();
     }
