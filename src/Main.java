@@ -1,4 +1,4 @@
-import City.*;
+import World.*;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
@@ -11,10 +11,8 @@ public class Main {
         mir.addMines(new Mine("Лужа протоплазмы", Resources.PROTOPLASM, -100, "Морское дно"));
         mir.addMines(new Mine("Залежи клеточной массы", Resources.CELLMASS, 10, "Морское дно"));
 
-        try {
-            mir.go();
-        } catch (ErrorInTheNumberOfWisearces e) {
-            System.out.println(e.getMessage());
-        }
+
+        mir.go();
+
     }
 }

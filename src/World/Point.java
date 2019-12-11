@@ -1,4 +1,4 @@
-package City;
+package World;
 
 public abstract class Point {
     private final static double maxPointXY = 100.0;

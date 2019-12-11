@@ -1,4 +1,4 @@
-package City;
+package World;
 
 import java.util.ArrayList;
 
@@ -27,10 +27,7 @@ public class World {
 
     }
 
-    public void go() throws InterruptedException, ErrorInTheNumberOfWisearces {
-        if (Wiseacres.size() < 1) {
-            throw new ErrorInTheNumberOfWisearces();
-        }
+    public void go() throws InterruptedException {
 
         for (int i = 0; i < Wiseacres.size(); i++) {
             wiseacresMoves(i);

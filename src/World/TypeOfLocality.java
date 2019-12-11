@@ -1,4 +1,4 @@
-package City;
+package World;
 
 public enum TypeOfLocality {
     TOWN("Город"),

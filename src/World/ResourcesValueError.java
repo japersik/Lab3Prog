@@ -1,4 +1,4 @@
-package City;
+package World;
 
 public class ResourcesValueError extends RuntimeException {
     public ResourcesValueError() {
